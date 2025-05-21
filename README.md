@@ -17,7 +17,7 @@ via `-Dproperty=value` switches. Configuration parameters:
 | odma.provider.className | fully qualified class name of OpenDMA session provider. The OpenDMA adaptor must be on the classpath. |
 | odma.provider.props.<name> | sets the config property `<name>` at the session provider |
 
-There is a sample file located in this directory configuring this server with a XML repository. |
+There is a sample file located in this directory configuring this server with a XML repository.
 
 ## Building
 As usual  with `mvn clean package`.
