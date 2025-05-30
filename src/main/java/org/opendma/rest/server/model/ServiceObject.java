@@ -15,8 +15,11 @@ import org.opendma.api.OdmaQName;
 import org.opendma.api.OdmaType;
 import org.opendma.exceptions.OdmaPropertyNotFoundException;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(Include.NON_NULL)
 public class ServiceObject {
 
     @JsonProperty("id")
@@ -32,7 +35,7 @@ public class ServiceObject {
     private List<ServiceProperty> properties;
 
     @JsonProperty("complete")
-    private boolean complete;
+    private Boolean complete;
 
     public ServiceObject(OdmaObject obj, IncludeListSpec includeListSpec) {
         this.id = obj.getId().toString();
@@ -62,6 +65,7 @@ public class ServiceObject {
         this.properties = new LinkedList<ServiceProperty>();
         Iterator<OdmaProperty> availableProperties = obj.availableProperties();
         OdmaQName[] includedPropertyNames = includeListSpec.getIncludedPropertyNames();
+        // TODO: handle wildcards
         if(availableProperties != null && (includedPropertyNames.length == 0 || includeListSpec.isDefaultIncluded())) {
             // performance optimization supported
             if(includedPropertyNames.length > 0) {
@@ -77,9 +81,11 @@ public class ServiceObject {
             this.complete = obj.availablePropertiesComplete();
         } else {
             // performance optimization not supported. Just include all properties
+            this.complete = true;
             for(OdmaPropertyInfo pi : obj.getOdmaClass().getProperties()) {
                 OdmaQName propName = pi.getQName();
                 if(includedPropertyNames.length > 0 && !includeListSpec.isPropertyIncluded(propName)) {
+                    this.complete = false;
                     continue;
                 }
                 try {
@@ -88,10 +94,9 @@ public class ServiceObject {
                     boolean enforceResolved = includeListSpec.isPropertyIncluded(prop.getName());
                     this.properties.add(new ServiceProperty(prop, nextToken, enforceResolved, includeListSpec, obj.getId()));
                 } catch(OdmaPropertyNotFoundException pnfe) {
-                    // ignore
+                    this.complete = false;
                 }
             }
-            this.complete = true;
         }
     }
 
@@ -115,7 +120,7 @@ public class ServiceObject {
         return properties;
     }
 
-    public boolean isComplete() {
+    public Boolean isComplete() {
         return complete;
     }
 
