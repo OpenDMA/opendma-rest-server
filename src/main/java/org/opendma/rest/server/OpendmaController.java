@@ -59,7 +59,7 @@ public class OpendmaController {
             return new ResponseEntity<ServiceRoot>(HttpStatus.UNAUTHORIZED);
         }
         try {
-            ServiceRoot serviceRoot = new ServiceRoot("0.7.0", session.getRepositoryIds());
+            ServiceRoot serviceRoot = new ServiceRoot("0.7.0", "0.1.0", session.getRepositoryIds());
             return new ResponseEntity<ServiceRoot>(serviceRoot, HttpStatus.OK);
         } finally {
             session.close();
