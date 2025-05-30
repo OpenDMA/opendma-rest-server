@@ -65,8 +65,7 @@ public class ServiceObject {
         this.properties = new LinkedList<ServiceProperty>();
         Iterator<OdmaProperty> availableProperties = obj.availableProperties();
         OdmaQName[] includedPropertyNames = includeListSpec.getIncludedPropertyNames();
-        // TODO: handle wildcards
-        if(availableProperties != null && (includedPropertyNames.length == 0 || includeListSpec.isDefaultIncluded())) {
+        if(availableProperties != null && (includedPropertyNames.length == 0 || includeListSpec.isDefaultIncluded()) && !includeListSpec.hasWildcards()) {
             // performance optimization supported
             if(includedPropertyNames.length > 0) {
                 // we have includes in addition to the default set
@@ -80,8 +79,9 @@ public class ServiceObject {
             }
             this.complete = obj.availablePropertiesComplete();
         } else {
-            // performance optimization not supported. Just include all properties
+            // performance optimization not supported or we need to handle wildcards
             this.complete = true;
+            HashSet<OdmaQName> includedProps = new HashSet<OdmaQName>();
             for(OdmaPropertyInfo pi : obj.getOdmaClass().getProperties()) {
                 OdmaQName propName = pi.getQName();
                 if(includedPropertyNames.length > 0 && !includeListSpec.isPropertyIncluded(propName)) {
@@ -93,8 +93,21 @@ public class ServiceObject {
                     String nextToken = prop.getType() == OdmaType.REFERENCE && prop.isMultiValue() ? includeListSpec.getNextToken(prop.getName()) : null;
                     boolean enforceResolved = includeListSpec.isPropertyIncluded(prop.getName());
                     this.properties.add(new ServiceProperty(prop, nextToken, enforceResolved, includeListSpec, obj.getId()));
+                    includedProps.add(propName);
                 } catch(OdmaPropertyNotFoundException pnfe) {
                     this.complete = false;
+                }
+            }
+            if(includeListSpec.isDefaultIncluded() && availableProperties != null) {
+                // combination of wildcards and default
+                while(availableProperties.hasNext()) {
+                    OdmaProperty prop = availableProperties.next();
+                    if(includedProps.contains(prop.getName())) {
+                        continue;
+                    }
+                    String nextToken = prop.getType() == OdmaType.REFERENCE && prop.isMultiValue() ? includeListSpec.getNextToken(prop.getName()) : null;
+                    boolean enforceResolved = includeListSpec.isPropertyIncluded(prop.getName());
+                    this.properties.add(new ServiceProperty(prop, nextToken, enforceResolved, includeListSpec, obj.getId()));
                 }
             }
         }
