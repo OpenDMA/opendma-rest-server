@@ -35,6 +35,10 @@ public class IncludeSpecParser {
 
     public static List<IncludeSpec> parse(String input) {
         List<IncludeSpec> result = new ArrayList<>();
+        
+        if(input == null) {
+            return result;
+        }
 
         StringBuilder segment = new StringBuilder();
         boolean escapeNext = false;
@@ -93,7 +97,7 @@ public class IncludeSpecParser {
         }
 
         String finalPrefix = foundAt && prefix.length() > 0 ? prefix.toString() : null;
-        String finalValue = value.toString();
+        String finalValue = foundAt ? value.toString() : prefix.toString();
 
         result.add(new IncludeSpec(finalPrefix, finalValue));
     }
