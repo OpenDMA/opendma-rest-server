@@ -41,7 +41,7 @@ public class ServiceObject {
         this.id = obj.getId().toString();
         OdmaClass odmaRootClass = obj.getOdmaClass();
         while(!odmaRootClass.getNamespace().equals("opendma")) {
-            if(odmaRootClass.getSuperClass() == null || odmaRootClass.getSuperClass().equals(odmaRootClass) || odmaRootClass.getSuperClass().getQName().equals(odmaRootClass.getQName())) {
+            if(odmaRootClass.getSuperClass() == null || odmaRootClass.getSuperClass().getQName().equals(odmaRootClass.getQName())) {
                 break;
             }
             odmaRootClass = odmaRootClass.getSuperClass();
