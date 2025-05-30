@@ -56,7 +56,9 @@ public class OpendmaController {
             session = null;
         }
         if(session == null) {
-            return new ResponseEntity<ServiceRoot>(HttpStatus.UNAUTHORIZED);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
+            return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         }
         try {
             ServiceRoot serviceRoot = new ServiceRoot("0.7.0", "0.1.0", session.getRepositoryIds());
@@ -81,7 +83,9 @@ public class OpendmaController {
             session = null;
         }
         if(session == null) {
-            return new ResponseEntity<ServiceObject>(HttpStatus.UNAUTHORIZED);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
+            return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         }
         try {
             OdmaRepository repo;
@@ -113,7 +117,9 @@ public class OpendmaController {
             session = null;
         }
         if(session == null) {
-            return new ResponseEntity<ServiceObject>(HttpStatus.UNAUTHORIZED);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
+            return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         }
         try {
             OdmaObject obj;
