@@ -2,8 +2,10 @@ package org.opendma.rest.server.model;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.TimeZone;
 
 import org.opendma.api.OdmaContent;
@@ -17,8 +19,11 @@ import org.opendma.api.OdmaQName;
 import org.opendma.api.OdmaType;
 import org.opendma.rest.server.SafeSplitter;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(Include.NON_NULL)
 public class ServiceProperty {
 
     @JsonProperty("name")
@@ -38,10 +43,10 @@ public class ServiceProperty {
 
     @JsonProperty("value")
     private Object value;
+    
+    private int pageSizeWithoutPagingSupport = Integer.MAX_VALUE;
 
     public ServiceProperty(OdmaProperty prop, String startToken, boolean enforceResolved, IncludeListSpec includeListSpec, OdmaId objId) {
-        System.out.println(prop.getName().toString()+" "+prop.getType().toString()+" "+prop.isMultiValue()+" "+prop.getValue());
-        System.out.flush();
         this.name = prop.getName().toString();
         this.type = prop.getType().toString();
         this.multiValue = prop.isMultiValue();
@@ -72,8 +77,35 @@ public class ServiceProperty {
                 }
                 next = pageIterator.nextPageMark();
             } else {
-                for(OdmaObject ref : refs) {
-                    items.add(convertSingleValue(name, type, ref, includeListSpec, null, -1));
+                int pos = 0;
+                Iterator<OdmaObject> itObj = refs.iterator();
+                if(startToken != null) {
+                    int skip;
+                    try {
+                        skip = Integer.parseInt(startToken);
+                    } catch(NumberFormatException nfe) {
+                        skip = 0;
+                    }
+                    for(int i = 0; i < skip; i++) {
+                        try {
+                            itObj.next();
+                            pos++;
+                        } catch(NoSuchElementException nsee) {
+                            break;
+                        }
+                    }
+                }
+                int count = 0;
+                while(itObj.hasNext()) {
+                    items.add(convertSingleValue(name, type, itObj.next(), includeListSpec, null, -1));
+                    count++;
+                    pos++;
+                    if(count >= pageSizeWithoutPagingSupport) {
+                        break;
+                    }
+                }
+                if(itObj.hasNext()) {
+                    next = Integer.toString(pos);
                 }
             }
             return new ServiceReferenceEnumeration(items, next);
