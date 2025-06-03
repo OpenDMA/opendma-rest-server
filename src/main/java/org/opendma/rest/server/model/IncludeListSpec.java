@@ -10,7 +10,7 @@ import org.opendma.rest.server.IncludeSpecParser.IncludeSpec;
 public class IncludeListSpec {
 
     private boolean includeDefault = false;
-    private boolean hasWildcards = true;
+    private boolean hasWildcards = false;
     private Map<OdmaQName, String> includeSpecMap = new HashMap<OdmaQName, String>();
     
     public IncludeListSpec(List<IncludeSpec> includeList) {
