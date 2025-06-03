@@ -23,6 +23,7 @@ import org.opendma.rest.server.model.IncludeListSpec;
 import org.opendma.rest.server.model.ServiceObject;
 import org.opendma.rest.server.model.ServiceRoot;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,9 @@ public class OpendmaController {
 
 
     private final OdmaSessionProvider sessionProvider;
+    
+    @Value("${rescanPreparedProperties}")
+    private boolean rescanPreparedProperties;
 
     @Autowired
     public OpendmaController(OdmaSessionProvider sessionProvider) {
@@ -75,7 +79,7 @@ public class OpendmaController {
             @Valid @RequestParam(value = "include", required = false) String include,
             HttpServletRequest httpRequest) {
 
-        IncludeListSpec includeListSpec = new IncludeListSpec(IncludeSpecParser.parse(include));
+        IncludeListSpec includeListSpec = include == null ? null  : new IncludeListSpec(IncludeSpecParser.parse(include));
         OdmaSession session;
         try {
             session = getSessionForRequest(httpRequest);
@@ -94,7 +98,7 @@ public class OpendmaController {
             } catch (OdmaObjectNotFoundException e) {
                 return new ResponseEntity<ServiceObject>(HttpStatus.NOT_FOUND);
             }
-            ServiceObject serviceRoot = new ServiceObject(repo, includeListSpec);
+            ServiceObject serviceRoot = new ServiceObject(repo, includeListSpec, rescanPreparedProperties);
             return new ResponseEntity<ServiceObject>(serviceRoot, HttpStatus.OK);
         } finally {
             session.close();
@@ -109,7 +113,7 @@ public class OpendmaController {
             @Valid @RequestParam(value = "include", required = false) String include,
             HttpServletRequest httpRequest) {
 
-        IncludeListSpec includeListSpec = new IncludeListSpec(IncludeSpecParser.parse(include));
+        IncludeListSpec includeListSpec = include == null ? null  : new IncludeListSpec(IncludeSpecParser.parse(include));
         OdmaSession session;
         try {
             session = getSessionForRequest(httpRequest);
@@ -128,7 +132,7 @@ public class OpendmaController {
             } catch (OdmaObjectNotFoundException e) {
                 return new ResponseEntity<ServiceObject>(HttpStatus.NOT_FOUND);
             }
-            ServiceObject serviceRoot = new ServiceObject(obj, includeListSpec);
+            ServiceObject serviceRoot = new ServiceObject(obj, includeListSpec, rescanPreparedProperties);
             return new ResponseEntity<ServiceObject>(serviceRoot, HttpStatus.OK);
         } finally {
             session.close();

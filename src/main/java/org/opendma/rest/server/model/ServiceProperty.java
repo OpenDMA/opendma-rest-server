@@ -45,8 +45,10 @@ public class ServiceProperty {
     private Object value;
     
     private int pageSizeWithoutPagingSupport = Integer.MAX_VALUE;
+    
+    private boolean rescanPreparedProperties = false;
 
-    public ServiceProperty(OdmaProperty prop, String startToken, boolean enforceResolved, IncludeListSpec includeListSpec, OdmaId objId) {
+    public ServiceProperty(OdmaProperty prop, String startToken, boolean enforceResolved, IncludeListSpec includeListSpec, OdmaId objId, boolean rescanPreparedProperties) {
         this.name = prop.getName().toString();
         this.type = prop.getType().toString();
         this.multiValue = prop.isMultiValue();
@@ -55,6 +57,7 @@ public class ServiceProperty {
         if(this.resolved) {
             this.value = prop.isMultiValue() ? convertMultiValue(prop.getName(), prop.getType(), prop.getValue(), startToken, includeListSpec, objId) : convertSingleValue(prop.getName(), prop.getType(), prop.getValue(), includeListSpec, objId, 0);
         }
+        this.rescanPreparedProperties = rescanPreparedProperties;
     }
     
     private Object convertMultiValue(OdmaQName name, OdmaType type, Object value, String startToken, IncludeListSpec includeListSpec, OdmaId objId) {
@@ -151,7 +154,7 @@ public class ServiceProperty {
             case REFERENCE :
                 OdmaObject refObj = (OdmaObject)value;
                 if(refObj.isEmbeddingRecommended()) {
-                    return new ServiceObject(refObj, includeListSpec);
+                    return new ServiceObject(refObj, includeListSpec, rescanPreparedProperties);
                 } else {
                     return new ServiceObject(refObj.getId());
                 }
