@@ -125,10 +125,14 @@ public class OpendmaController {
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         }
+        OdmaQName[] propertyNames = null;
+        if(includeListSpec != null && !includeListSpec.hasWildcards() && !includeListSpec.isDefaultIncluded()) {
+            propertyNames = includeListSpec.getIncludedPropertyNames();
+        }
         try {
             OdmaObject obj;
             try {
-                obj = session.getObject(new OdmaId(repoId), new OdmaId(objId), null);
+                obj = session.getObject(new OdmaId(repoId), new OdmaId(objId), propertyNames);
             } catch (OdmaObjectNotFoundException e) {
                 return new ResponseEntity<ServiceObject>(HttpStatus.NOT_FOUND);
             }
