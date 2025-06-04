@@ -42,7 +42,7 @@ public class OpendmaController {
 
     private final OdmaSessionProvider sessionProvider;
     
-    @Value("${rescanPreparedProperties}")
+    @Value("${rescanPreparedProperties:false}")
     private boolean rescanPreparedProperties;
 
     @Autowired
