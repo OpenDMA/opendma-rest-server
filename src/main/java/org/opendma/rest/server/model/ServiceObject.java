@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opendma.api.OdmaClass;
 import org.opendma.api.OdmaId;
 import org.opendma.api.OdmaObject;
 import org.opendma.api.OdmaProperty;
@@ -36,30 +35,16 @@ public class ServiceObject {
 
     @JsonProperty("complete")
     private Boolean complete;
+    
+    // private static RootOdmaDetection rootOdmaDetection = new HierarchyWalkingRootOdmaDetection();
+    private static RootOdmaDetection rootOdmaDetection = new JavaInterfaceRootOdmaDetection();
 
     public ServiceObject(OdmaObject obj, IncludeListSpec includeListSpec, boolean rescanPreparedProperties) {
         this.id = obj.getId().toString();
-        OdmaClass odmaRootClass = obj.getOdmaClass();
-        while(!odmaRootClass.getNamespace().equals("opendma")) {
-            if(odmaRootClass.getSuperClass() == null || odmaRootClass.getSuperClass().getQName().equals(odmaRootClass.getQName())) {
-                break;
-            }
-            odmaRootClass = odmaRootClass.getSuperClass();
-        }
-        this.rootOdmaClassName = odmaRootClass.getQName().toString();
-        HashSet<OdmaQName> aspectRootNames = new HashSet<OdmaQName>();
-        for(OdmaClass aspect :  obj.getOdmaClass().getAspects()) {
-            OdmaClass aspectOdmaRootClass = aspect;
-            while(!aspectOdmaRootClass.getNamespace().equals("opendma")) {
-                if(aspectOdmaRootClass.getSuperClass() == null || aspectOdmaRootClass.getSuperClass().equals(aspectOdmaRootClass) || aspectOdmaRootClass.getSuperClass().getQName().equals(aspectOdmaRootClass.getQName())) {
-                    break;
-                }
-                aspectOdmaRootClass = aspectOdmaRootClass.getSuperClass();
-            }
-            aspectRootNames.add(aspectOdmaRootClass.getQName());
-        }
-        this.aspectRootOdmaNames = new ArrayList<String>(aspectRootNames.size());
-        for(OdmaQName qn : aspectRootNames) {
+        RootOdmaClassAndAspects odmaRoot = rootOdmaDetection.detect(obj);
+        this.rootOdmaClassName = odmaRoot.getRootOdmaClassName().toString();
+        this.aspectRootOdmaNames = new ArrayList<String>(odmaRoot.getAspectRootOdmaNames().size());
+        for(OdmaQName qn : odmaRoot.getAspectRootOdmaNames()) {
             aspectRootOdmaNames.add(qn.toString());
         }
         this.properties = new LinkedList<ServiceProperty>();
