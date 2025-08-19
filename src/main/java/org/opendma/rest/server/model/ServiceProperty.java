@@ -15,8 +15,10 @@ import org.opendma.api.OdmaObject;
 import org.opendma.api.OdmaPageIterator;
 import org.opendma.api.OdmaPagingIterable;
 import org.opendma.api.OdmaProperty;
+import org.opendma.api.OdmaProperty.PropertyResolutionState;
 import org.opendma.api.OdmaQName;
 import org.opendma.api.OdmaType;
+import org.opendma.exceptions.OdmaInvalidDataTypeException;
 import org.opendma.rest.server.SafeSplitter;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -53,9 +55,21 @@ public class ServiceProperty {
         this.type = prop.getType().toString();
         this.multiValue = prop.isMultiValue();
         this.readOnly = prop.isReadOnly();
-        this.resolved = prop.isResolved() || enforceResolved;
+        this.resolved = prop.getResolutionState() == PropertyResolutionState.RESOLVED || enforceResolved;
         if(this.resolved) {
             this.value = prop.isMultiValue() ? convertMultiValue(prop.getName(), prop.getType(), prop.getValue(), startToken, includeListSpec, objId) : convertSingleValue(prop.getName(), prop.getType(), prop.getValue(), includeListSpec, objId, 0);
+        } else {
+            if(!prop.isMultiValue() && prop.getType() == OdmaType.REFERENCE && prop.getResolutionState() == PropertyResolutionState.IDRESOLVED) {
+                try {
+                    OdmaId id = prop.getReferenceId();
+                    if(id != null) {
+                        this.value = convertSingleValue(prop.getName(), prop.getType(), id, includeListSpec, objId, 0);
+                        this.resolved = true;
+                    }
+                } catch (OdmaInvalidDataTypeException e) {
+                    // silently ignore
+                }
+            }
         }
         this.rescanPreparedProperties = rescanPreparedProperties;
     }
@@ -152,9 +166,13 @@ public class ServiceProperty {
             case LONG :
                 return Long.toString((Long)value);
             case REFERENCE :
+                if(value instanceof OdmaId) {
+                    return new ServiceObject((OdmaId)value);
+                }
                 OdmaObject refObj = (OdmaObject)value;
                 if(refObj.isEmbeddingRecommended()) {
-                    return new ServiceObject(refObj, includeListSpec, rescanPreparedProperties);
+                    // TODO: what is the includeListSpec for embedded obejcts?
+                    return new ServiceObject(refObj, null/*includeListSpec*/, rescanPreparedProperties);
                 } else {
                     return new ServiceObject(refObj.getId());
                 }
