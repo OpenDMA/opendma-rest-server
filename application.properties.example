@@ -1,0 +1,6 @@
+odma.provider.className=
+odma.provider.props.<propname>=<propvalue>
+
+# XML Repository
+# odma.provider.className=com.xaldon.opendma.xmlrepo.XmlRepositorySessionProvider
+# odma.provider.props.filename=SampleRepository.xml
