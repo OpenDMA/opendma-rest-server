@@ -51,7 +51,7 @@ public class ServiceObject {
         ////////////////////////////////////
         // IMPORTANT
         ////////////////////////////////////
-        // This code is highly optimised to avoid any unnecessary class to obj.getOdmaClass() and obj.getOdmaClass().getProperties()
+        // This code is highly optimised to avoid any unnecessary calls to obj.getOdmaClass() and obj.getOdmaClass().getProperties()
         // which could trigger round-trips to the backend system.
         ////////////////////////////////////
         if(includeListSpec == null) {
