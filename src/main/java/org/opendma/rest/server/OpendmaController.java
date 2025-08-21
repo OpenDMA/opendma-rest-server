@@ -18,6 +18,7 @@ import org.opendma.exceptions.OdmaException;
 import org.opendma.exceptions.OdmaInvalidDataTypeException;
 import org.opendma.exceptions.OdmaObjectNotFoundException;
 import org.opendma.exceptions.OdmaPropertyNotFoundException;
+import org.opendma.exceptions.OdmaServiceException;
 import org.opendma.rest.server.model.Base64Coder;
 import org.opendma.rest.server.model.IncludeListSpec;
 import org.opendma.rest.server.model.ServiceObject;
@@ -58,6 +59,8 @@ public class OpendmaController {
             session = getSessionForRequest(httpRequest);
         } catch (OdmaException e) {
             session = null;
+        } catch (OdmaServiceException se) {
+            session = null;
         }
         if(session == null) {
             HttpHeaders headers = new HttpHeaders();
@@ -84,6 +87,8 @@ public class OpendmaController {
         try {
             session = getSessionForRequest(httpRequest);
         } catch (OdmaException e) {
+            session = null;
+        } catch (OdmaServiceException e) {
             session = null;
         }
         if(session == null) {
