@@ -23,7 +23,7 @@ public class OdmaSessionProviderConfig {
         Object instance = clazz.getDeclaredConstructor().newInstance();
 
         if (!(instance instanceof OdmaSessionProvider)) {
-            throw new IllegalArgumentException("Provided class odma.provider.className is not an OdmaSessionProvider");
+            throw new IllegalArgumentException("Provided class `"+props.getClassName()+"` is not an OdmaSessionProvider");
         }
 
         // Inject properties via setter methods
@@ -31,6 +31,8 @@ public class OdmaSessionProviderConfig {
         for (Map.Entry<String, String> entry : props.getProps().entrySet()) {
             if (wrapper.isWritableProperty(entry.getKey())) {
                 wrapper.setPropertyValue(entry.getKey(), entry.getValue());
+            } else {
+                throw new IllegalArgumentException("OdmaSessionProvider `"+props.getClassName()+"` does not have writable property `"+entry.getKey()+"`");
             }
         }
 
