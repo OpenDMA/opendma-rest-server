@@ -1,9 +1,12 @@
 package org.opendma.rest.server;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import org.opendma.api.OdmaContent;
@@ -67,12 +70,9 @@ public class OpendmaController {
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         }
-        try {
-            ServiceRoot serviceRoot = new ServiceRoot("0.7.0", "0.1.0", session.getRepositoryIds());
-            return new ResponseEntity<ServiceRoot>(serviceRoot, HttpStatus.OK);
-        } finally {
-            session.close();
-        }
+
+        ServiceRoot serviceRoot = new ServiceRoot("0.7.0", "0.1.0", session.getRepositoryIds());
+        return new ResponseEntity<ServiceRoot>(serviceRoot, HttpStatus.OK);
 
     }
 
@@ -83,6 +83,7 @@ public class OpendmaController {
             HttpServletRequest httpRequest) {
 
         IncludeListSpec includeListSpec = include == null ? null  : new IncludeListSpec(IncludeSpecParser.parse(include));
+
         OdmaSession session;
         try {
             session = getSessionForRequest(httpRequest);
@@ -96,18 +97,15 @@ public class OpendmaController {
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         }
+
+        OdmaRepository repo;
         try {
-            OdmaRepository repo;
-            try {
-                repo = session.getRepository(new OdmaId(repoId));
-            } catch (OdmaObjectNotFoundException e) {
-                return new ResponseEntity<ServiceObject>(HttpStatus.NOT_FOUND);
-            }
-            ServiceObject serviceRoot = new ServiceObject(repo, includeListSpec, rescanPreparedProperties);
-            return new ResponseEntity<ServiceObject>(serviceRoot, HttpStatus.OK);
-        } finally {
-            session.close();
+            repo = session.getRepository(new OdmaId(repoId));
+        } catch (OdmaObjectNotFoundException e) {
+            return new ResponseEntity<ServiceObject>(HttpStatus.NOT_FOUND);
         }
+        ServiceObject serviceRoot = new ServiceObject(repo, includeListSpec, rescanPreparedProperties);
+        return new ResponseEntity<ServiceObject>(serviceRoot, HttpStatus.OK);
 
     }
 
@@ -119,6 +117,7 @@ public class OpendmaController {
             HttpServletRequest httpRequest) {
 
         IncludeListSpec includeListSpec = include == null ? null  : new IncludeListSpec(IncludeSpecParser.parse(include));
+
         OdmaSession session;
         try {
             session = getSessionForRequest(httpRequest);
@@ -130,22 +129,20 @@ public class OpendmaController {
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         }
+
         OdmaQName[] propertyNames = null;
         if(includeListSpec != null && !includeListSpec.hasWildcards() && !includeListSpec.isDefaultIncluded()) {
             propertyNames = includeListSpec.getIncludedPropertyNames();
         }
+
+        OdmaObject obj;
         try {
-            OdmaObject obj;
-            try {
-                obj = session.getObject(new OdmaId(repoId), new OdmaId(objId), propertyNames);
-            } catch (OdmaObjectNotFoundException e) {
-                return new ResponseEntity<ServiceObject>(HttpStatus.NOT_FOUND);
-            }
-            ServiceObject serviceRoot = new ServiceObject(obj, includeListSpec, rescanPreparedProperties);
-            return new ResponseEntity<ServiceObject>(serviceRoot, HttpStatus.OK);
-        } finally {
-            session.close();
+            obj = session.getObject(new OdmaId(repoId), new OdmaId(objId), propertyNames);
+        } catch (OdmaObjectNotFoundException e) {
+            return new ResponseEntity<ServiceObject>(HttpStatus.NOT_FOUND);
         }
+        ServiceObject serviceRoot = new ServiceObject(obj, includeListSpec, rescanPreparedProperties);
+        return new ResponseEntity<ServiceObject>(serviceRoot, HttpStatus.OK);
 
     }
 
@@ -215,38 +212,103 @@ public class OpendmaController {
                     .body(resource);
         } catch(Exception e) {
             return new ResponseEntity<InputStreamResource>(HttpStatus.INTERNAL_SERVER_ERROR);
-        } finally {
-            session.close();
         }
 
     }
     
     private OdmaSession getSessionForRequest(HttpServletRequest httpRequest) throws OdmaException {
+
+        HttpSession httpSession = httpRequest.getSession(true);
+        OdmaSession session = (OdmaSession) httpSession.getAttribute("odmaSession");
+        String authMethod = (String) httpSession.getAttribute("odmaAuthMethod");
         
         String authHeader = httpRequest.getHeader("Authorization");
         
         if (authHeader == null) {
-            return sessionProvider.getSession();
-        }
-        
-        if(authHeader.toLowerCase().startsWith("basic ")) {
+            if (session != null) {
+                if("NONE".equals(authMethod)) {
+                    return session;
+                } else {
+                    return null;
+                }
+            }
+            session = sessionProvider.getSession();
+            if (session != null) {
+                httpSession.setAttribute("odmaSession", session);
+                httpSession.setAttribute("odmaAuthMethod", "NONE");
+            }
+        } else  if(authHeader.toLowerCase().startsWith("basic ")) {
             String base64Credentials = authHeader.substring(6).trim();
             byte[] credDecoded = Base64Coder.decode(base64Credentials);
             // byte[] credDecoded = Base64.getDecoder().decode(base64Credentials);
             String credentials = new String(credDecoded, StandardCharsets.UTF_8);
-            final String[] values = credentials.split(":", 2);
-            if (values.length != 2) {
+            if (session != null) {
+                if("BASIC".equals(authMethod)) {
+                    if(sha256(credentials).equals(httpSession.getAttribute("odmaCredentialsHash"))) {
+                        return session;
+                    } else {
+                        return null;
+                    }
+                } else {
+                    session.close();
+                    session = null;
+                    httpSession.removeAttribute("odmaSession");
+                    httpSession.removeAttribute("odmaAuthMethod");
+                }
+            }
+            final String[] credentialsParts = credentials.split(":", 2);
+            if (credentialsParts.length != 2) {
                 return null;
             }
-            return sessionProvider.getSessionForAccount(values[0], values[1]);
-        }
-        
-        if(authHeader.toLowerCase().startsWith("bearer ")) {
+            session = sessionProvider.getSessionForAccount(credentialsParts[0], credentialsParts[1]);
+            if (session != null) {
+                httpSession.setAttribute("odmaSession", session);
+                httpSession.setAttribute("odmaAuthMethod", "BASIC");
+                httpSession.setAttribute("odmaCredentialsHash", sha256(credentials));
+            }
+        } else  if(authHeader.toLowerCase().startsWith("bearer ")) {
             String bearerToken = authHeader.substring(7).trim();
-            return sessionProvider.getSessionWithToken(new OdmaQName("http","Bearer"), bearerToken);
+            if (session != null) {
+                if("TOKEN".equals(authMethod)) {
+                    if(sha256(bearerToken).equals(httpSession.getAttribute("odmaTokenHash"))) {
+                        return session;
+                    } else {
+                        return null;
+                    }
+                } else {
+                    session.close();
+                    session = null;
+                    httpSession.removeAttribute("odmaSession");
+                    httpSession.removeAttribute("odmaAuthMethod");
+                }
+            }
+            session = sessionProvider.getSessionWithToken(new OdmaQName("http","Bearer"), bearerToken);
+            if (session != null) {
+                httpSession.setAttribute("odmaSession", session);
+                httpSession.setAttribute("odmaAuthMethod", "TOKEN");
+                httpSession.setAttribute("odmaTokenHash", sha256(bearerToken));
+            }
         }
-        
-        return null;
+
+        return session;
+    }
+
+    public static String sha256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encoded = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : encoded) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not found", e);
+        }
     }
 
 }
