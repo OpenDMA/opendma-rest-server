@@ -97,7 +97,7 @@ paths:
             for the backing content management system as well as a high probability of being useful.
             
             The special string "default"  triggers the inclusion of those properties even if this
-            parameter is given, making the properties named in  this list additiove. Otherwise, only
+            parameter is given, making the properties named in this list additiove. Otherwise, only
             the properties in this list are returned.
             
             Each property name can be prefixed with the next token of an object enumeration, if this
