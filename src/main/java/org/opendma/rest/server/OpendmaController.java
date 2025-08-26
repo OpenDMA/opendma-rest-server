@@ -54,7 +54,7 @@ public class OpendmaController {
         this.sessionProvider = sessionProvider;
     }
     
-    @GetMapping(value = "/", produces = {"application/json"})
+    @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ServiceRoot> serviceRoot(HttpServletRequest httpRequest) {
 
         OdmaSession session;
@@ -76,7 +76,7 @@ public class OpendmaController {
 
     }
 
-    @GetMapping(value = "/obj/{repoid}", produces = {"application/json"})
+    @GetMapping(value = "/obj/{repoid:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ServiceObject> repository(
             @PathVariable("repoid") String repoId,
             @Valid @RequestParam(value = "include", required = false) String include,
@@ -109,7 +109,7 @@ public class OpendmaController {
 
     }
 
-    @GetMapping(value = "/obj/{repoid}/{objid}", produces = {"application/json"})
+    @GetMapping(value = "/obj/{repoid}/{objid:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ServiceObject> object(
             @PathVariable("repoid") String repoId,
             @PathVariable("objid") String objId,
@@ -146,7 +146,7 @@ public class OpendmaController {
 
     }
 
-    @GetMapping(value = "/bin/{repoid}/{contentid}", produces = {"application/octet-stream"})
+    @GetMapping(value = "/bin/{repoid}/{contentid:.+}", produces = {"application/octet-stream"})
     ResponseEntity<InputStreamResource> content(
             @PathVariable("repoid") String repoId,
             @PathVariable("contentid") String contentId,
