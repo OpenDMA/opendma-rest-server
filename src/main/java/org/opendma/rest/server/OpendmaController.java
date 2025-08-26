@@ -78,7 +78,7 @@ public class OpendmaController {
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         }
 
-        ServiceRoot serviceRoot = new ServiceRoot("0.7.0", "0.1.0", session.getRepositoryIds());
+        ServiceRoot serviceRoot = new ServiceRoot("0.7.0", "0.7.0", session.getRepositoryIds(), session.getSupportedQueryLanguages());
         return new ResponseEntity<ServiceRoot>(serviceRoot, HttpStatus.OK);
 
     }

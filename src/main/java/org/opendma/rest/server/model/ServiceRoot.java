@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opendma.api.OdmaId;
+import org.opendma.api.OdmaQName;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -17,14 +18,21 @@ public class ServiceRoot {
 
     @JsonProperty("repositories")
     private List<String> repositories;
+    
+    @JsonProperty("supportedQueryLanguages")
+    private List<String> supportedQueryLanguages;
 
-    public ServiceRoot(String opendmaVersion, String serviceVersion, List<OdmaId> repositoryIds) {
+    public ServiceRoot(String opendmaVersion, String serviceVersion, List<OdmaId> repositoryIds, List<OdmaQName> supportedQueryLanguageNames) {
         super();
         this.opendmaVersion = opendmaVersion;
         this.serviceVersion = serviceVersion;
         this.repositories = new LinkedList<String>();
         for(OdmaId id : repositoryIds) {
             this.repositories.add(id.toString());
+        }
+        this.supportedQueryLanguages = new LinkedList<String>();
+        for(OdmaQName name : supportedQueryLanguageNames) {
+            this.supportedQueryLanguages.add(name.toString());
         }
     }
 

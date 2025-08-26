@@ -201,6 +201,12 @@ components:
             type: string
             example: sample-repo
             description: ID of repository provided by this service
+        supportedQueryLanguages:
+          type: array
+          description: List of supported query languages forsearch
+          items:
+            type: string
+            example: cmis:sql
     Object:
       type: object
       description: |-
