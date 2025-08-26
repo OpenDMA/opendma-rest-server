@@ -238,9 +238,7 @@ components:
             - type: array
               items:
                 $ref: "#/components/schemas/GuidValue"
-            - type: array
-              items:
-                $ref: "#/components/schemas/Object"
+            - $ref: "#/components/schemas/ReferenceEnumeration"
     ContentValue:
       type: object
       properties:
@@ -258,3 +256,13 @@ components:
         repositoryId:
           type: string
           example: sample-repo
+    ReferenceEnumeration:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Object"
+        next:
+          type: string
+          example: 30516c78203e
