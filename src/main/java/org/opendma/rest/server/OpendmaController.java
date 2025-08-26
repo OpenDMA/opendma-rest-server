@@ -3,6 +3,7 @@ package org.opendma.rest.server;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,15 +16,19 @@ import org.opendma.api.OdmaObject;
 import org.opendma.api.OdmaProperty;
 import org.opendma.api.OdmaQName;
 import org.opendma.api.OdmaRepository;
+import org.opendma.api.OdmaSearchResult;
 import org.opendma.api.OdmaSession;
 import org.opendma.api.OdmaSessionProvider;
 import org.opendma.exceptions.OdmaException;
 import org.opendma.exceptions.OdmaInvalidDataTypeException;
 import org.opendma.exceptions.OdmaObjectNotFoundException;
 import org.opendma.exceptions.OdmaPropertyNotFoundException;
+import org.opendma.exceptions.OdmaQuerySyntaxException;
 import org.opendma.exceptions.OdmaServiceException;
 import org.opendma.rest.server.model.Base64Coder;
 import org.opendma.rest.server.model.IncludeListSpec;
+import org.opendma.rest.server.model.SearchRequest;
+import org.opendma.rest.server.model.SearchResponse;
 import org.opendma.rest.server.model.ServiceObject;
 import org.opendma.rest.server.model.ServiceRoot;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +40,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -144,6 +151,42 @@ public class OpendmaController {
         ServiceObject serviceRoot = new ServiceObject(obj, includeListSpec, rescanPreparedProperties);
         return new ResponseEntity<ServiceObject>(serviceRoot, HttpStatus.OK);
 
+    }
+    
+    @PostMapping(value = "/search/{repoid:.+}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<SearchResponse> search(
+            @PathVariable("repoid") String repoId,
+            @RequestBody SearchRequest searchRequest,
+            HttpServletRequest httpRequest) {
+
+        OdmaSession session;
+        try {
+            session = getSessionForRequest(httpRequest);
+        } catch (OdmaException e) {
+            session = null;
+        }
+        if (session == null) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
+            return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
+        }
+
+        OdmaSearchResult result;
+        try {
+            result = session.search(new OdmaId(repoId), OdmaQName.fromString(searchRequest.getLanguage()), searchRequest.getQuery());
+        } catch (OdmaObjectNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (OdmaQuerySyntaxException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        
+        List<ServiceObject> items = new LinkedList<ServiceObject>();
+        for(OdmaObject obj : result.getObjects()) {
+            items.add(new ServiceObject(obj, null, rescanPreparedProperties));
+        }
+        return new ResponseEntity<SearchResponse>(new SearchResponse(items), HttpStatus.OK);
     }
 
     @GetMapping(value = "/bin/{repoid}/{contentid:.+}", produces = {"application/octet-stream"})

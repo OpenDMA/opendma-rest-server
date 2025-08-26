@@ -117,6 +117,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Object'
+  /opendma/search/{repoId}:
+    post:
+      tags:
+        - Objects
+      summary: Search
+      description: Search for objects in the repository.
+      operationId: search
+      parameters:
+        - name: repoId
+          in: path
+          description: ID of Repository
+          example: sample-repo
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Search request to be executed
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
   /opendma/bin/{repoId}/{contentId}:
     get:
       tags:
@@ -266,3 +295,19 @@ components:
         next:
           type: string
           example: 30516c78203e
+    SearchRequest:
+      type: object
+      properties:
+        language:
+          type: string
+          example: cmis:sql
+        query:
+          type: string
+          example: SELECT * FROM cmis:document WHERE cmis:name = 'hello, world!'
+    SearchResponse:
+      type: object
+      properties:
+        tems:
+          type: array
+          items:
+            $ref: "#/components/schemas/Object"
