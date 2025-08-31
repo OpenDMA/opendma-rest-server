@@ -26,7 +26,7 @@ As usual  with `mvn clean package`.
 Build this project as well as the [OpenDMA Java API](https://github.com/OpenDMA/opendma-java-api) and the
 [OpenDMA XML Repository](https://github.com/OpenDMA/opendma-java-xmlrepo).
 
-Please the three files `opendma-rest-server-#.#.#.jar`, `opendma-api-#.#.#.jar` and `opendma-java-xmlrepo-#.#.#.jar`
+Place the three files `opendma-rest-server-#.#.#.jar`, `opendma-api-#.#.#.jar` and `opendma-java-xmlrepo-#.#.#.jar`
 in a folder. Put [this](https://github.com/OpenDMA/opendma-java-tutorial/blob/main/src/main/resources/SampleRepository.xml)
 xml file and [this](https://github.com/OpenDMA/opendma-java-tutorial/blob/main/sample-content.bin) sample content file from the Java tutorial in the same folder.
 
