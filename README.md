@@ -7,7 +7,8 @@ The API is documented in the Open API spec file [opendma-api-spec-070.yaml](./op
 ## Current state
 
 ## Usage
-Run the executable jar file `opendma-rest-server-#.#.#.jar`.
+Get the jar file `opendma-rest-server-#.#.#.jar` and the `lib` folder from the maven build and
+run it with `java -cp "lib/*:opendma-rest-server-#.#.#.jar" org.opendma.rest.server.OpendmaRestServer`.  
 The server is configured using springs default configuration mechanism. You can either put the config parameters
 in an `application.properties` file in the current directory or pass them directly to the java process
 via `-Dproperty=value` switches. Configuration parameters:
@@ -23,16 +24,27 @@ There is a sample file located in this directory configuring this server with a 
 As usual  with `mvn clean package`.
 
 ## Example
-Build this project as well as the [OpenDMA Java API](https://github.com/OpenDMA/opendma-java-api) and the
-[OpenDMA XML Repository](https://github.com/OpenDMA/opendma-java-xmlrepo).
-
-Place the three files `opendma-rest-server-#.#.#.jar`, `opendma-api-#.#.#.jar` and `opendma-java-xmlrepo-#.#.#.jar`
-in a folder. Put [this](https://github.com/OpenDMA/opendma-java-tutorial/blob/main/src/main/resources/SampleRepository.xml)
-xml file and [this](https://github.com/OpenDMA/opendma-java-tutorial/blob/main/sample-content.bin) sample content file from the Java tutorial in the same folder.
+Build this project as well as the [OpenDMA XML Repository](https://github.com/OpenDMA/opendma-java-xmlrepo).
+Add the file `opendma-java-xmlrepo-#.#.#.jar` to the `lib` folder.  
+Put [this](https://github.com/OpenDMA/opendma-java-tutorial/blob/main/src/main/resources/SampleRepository.xml)
+xml file and [this](https://github.com/OpenDMA/opendma-java-tutorial/blob/main/sample-content.bin) sample content file from the Java tutorial next to `opendma-rest-server-#.#.#.jar` and `application.properties`. This results
+in the following directory layout:
+```
+ /opendma-rest-server
+   |
+   +--- opendma-rest-server-#.#.#.jar
+   +--- application.properties
+   +--- SampleRepository.xml
+   +--- sample-content.bin
+   +--- lib
+         |
+         +--- opendma-java-xmlrepo-#.#.#.jar
+         +--- ...
+```
 
 Run this command:
 ```
-java -cp opendma-api-0.7.0-SNAPSHOT.jar;opendma-rest-server-0.7.0-SNAPSHOT.jar;opendma-xmlrepo-0.7.0-SNAPSHOT.jar;. -Dodma.provider.className=com.xaldon.opendma.xmlrepo.XmlRepositorySessionProvider -Dodma.provider.props.classpathResource=SampleRepository.xml org.springframework.boot.loader.JarLauncher
+java -cp "lib/*:opendma-rest-server-#.#.#.jar
 ```
 
 You can now access the OpenDMA rest service as http://localhost:8080/opendma
