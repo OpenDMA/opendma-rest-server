@@ -143,7 +143,7 @@ public class ServiceProperty {
             return null;
         }
         switch(type) {
-            case BLOB :
+            case BINARY :
                 return Base64Coder.encode((byte[])value);
             case BOOLEAN :
                 return ((Boolean)value).booleanValue() ? "true" : "false";
