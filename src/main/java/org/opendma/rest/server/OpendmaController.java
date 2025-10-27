@@ -19,12 +19,12 @@ import org.opendma.api.OdmaRepository;
 import org.opendma.api.OdmaSearchResult;
 import org.opendma.api.OdmaSession;
 import org.opendma.api.OdmaSessionProvider;
+import org.opendma.exceptions.OdmaAuthenticationException;
 import org.opendma.exceptions.OdmaException;
 import org.opendma.exceptions.OdmaInvalidDataTypeException;
 import org.opendma.exceptions.OdmaObjectNotFoundException;
 import org.opendma.exceptions.OdmaPropertyNotFoundException;
 import org.opendma.exceptions.OdmaQuerySyntaxException;
-import org.opendma.exceptions.OdmaServiceException;
 import org.opendma.rest.server.model.Base64Coder;
 import org.opendma.rest.server.model.IncludeListSpec;
 import org.opendma.rest.server.model.SearchRequest;
@@ -67,15 +67,12 @@ public class OpendmaController {
         OdmaSession session;
         try {
             session = getSessionForRequest(httpRequest);
-        } catch (OdmaException e) {
-            session = null;
-        } catch (OdmaServiceException se) {
-            session = null;
-        }
-        if(session == null) {
+        } catch (OdmaAuthenticationException ae) {
             HttpHeaders headers = new HttpHeaders();
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         ServiceRoot serviceRoot = new ServiceRoot("0.7.0", "0.7.0", session.getRepositoryIds(), session.getSupportedQueryLanguages());
@@ -94,15 +91,12 @@ public class OpendmaController {
         OdmaSession session;
         try {
             session = getSessionForRequest(httpRequest);
-        } catch (OdmaException e) {
-            session = null;
-        } catch (OdmaServiceException e) {
-            session = null;
-        }
-        if(session == null) {
+        } catch (OdmaAuthenticationException ae) {
             HttpHeaders headers = new HttpHeaders();
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         OdmaRepository repo;
@@ -128,13 +122,12 @@ public class OpendmaController {
         OdmaSession session;
         try {
             session = getSessionForRequest(httpRequest);
-        } catch (OdmaException e) {
-            session = null;
-        }
-        if(session == null) {
+        } catch (OdmaAuthenticationException ae) {
             HttpHeaders headers = new HttpHeaders();
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         OdmaQName[] propertyNames = null;
@@ -162,13 +155,12 @@ public class OpendmaController {
         OdmaSession session;
         try {
             session = getSessionForRequest(httpRequest);
-        } catch (OdmaException e) {
-            session = null;
-        }
-        if (session == null) {
+        } catch (OdmaAuthenticationException ae) {
             HttpHeaders headers = new HttpHeaders();
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         OdmaSearchResult result;
@@ -198,11 +190,12 @@ public class OpendmaController {
         OdmaSession session;
         try {
             session = getSessionForRequest(httpRequest);
-        } catch (OdmaException e) {
-            session = null;
-        }
-        if(session == null) {
-            return new ResponseEntity<InputStreamResource>(HttpStatus.UNAUTHORIZED);
+        } catch (OdmaAuthenticationException ae) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
+            return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         
         List<String> contentIdParts = SafeSplitter.split(contentId);
