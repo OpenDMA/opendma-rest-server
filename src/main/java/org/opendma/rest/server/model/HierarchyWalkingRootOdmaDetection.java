@@ -19,7 +19,7 @@ public class HierarchyWalkingRootOdmaDetection implements RootOdmaDetection {
             odmaRootClass = odmaRootClass.getSuperClass();
         }
         HashSet<OdmaQName> aspectRootNamesSet = new HashSet<OdmaQName>();
-        for(OdmaClass aspect :  obj.getOdmaClass().getAspects()) {
+        for(OdmaClass aspect :  obj.getOdmaClass().getIncludedAspects()) {
             OdmaClass aspectOdmaRootClass = aspect;
             while(!aspectOdmaRootClass.getNamespace().equals("opendma")) {
                 if(aspectOdmaRootClass.getSuperClass() == null || aspectOdmaRootClass.getSuperClass().equals(aspectOdmaRootClass) || aspectOdmaRootClass.getSuperClass().getQName().equals(aspectOdmaRootClass.getQName())) {
