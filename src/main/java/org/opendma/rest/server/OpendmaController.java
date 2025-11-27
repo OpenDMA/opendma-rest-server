@@ -55,6 +55,9 @@ public class OpendmaController {
     
     @Value("${rescanPreparedProperties:false}")
     private boolean rescanPreparedProperties;
+    
+    @Value("${ssoSupport:false}")
+    private boolean ssoSupport;
 
     @Autowired
     public OpendmaController(OdmaSessionProvider sessionProvider) {
@@ -265,8 +268,13 @@ public class OpendmaController {
                 if("NONE".equals(authMethod)) {
                     return session;
                 } else {
-                    return null;
+                    // OdmaSession stored in HttpSession has been authenticated with credentials, but we don't have an "Authorization" header
+                    // Request it so we can compare
+                    throw new OdmaAuthenticationException();
                 }
+            }
+            if(!ssoSupport) {
+                throw new OdmaAuthenticationException();
             }
             session = sessionProvider.getSession();
             if (session != null) {
