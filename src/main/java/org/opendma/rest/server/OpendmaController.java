@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.opendma.api.OdmaContent;
 import org.opendma.api.OdmaId;
 import org.opendma.api.OdmaObject;
@@ -52,7 +54,9 @@ public class OpendmaController {
 
 
     private final OdmaSessionProvider sessionProvider;
-    
+
+    private Log log = LogFactory.getLog(OpendmaController.class);    
+
     @Value("${rescanPreparedProperties:false}")
     private boolean rescanPreparedProperties;
     
@@ -75,6 +79,7 @@ public class OpendmaController {
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
+            log.error("Failed acquiring session", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -99,6 +104,7 @@ public class OpendmaController {
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
+            log.error("Failed acquiring session", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -130,6 +136,7 @@ public class OpendmaController {
             headers.set("WWW-Authenticate", "Basic realm=\"OpenDMA REST Service\"");
             return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
+            log.error("Failed acquiring session", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -150,7 +157,7 @@ public class OpendmaController {
     }
     
     @PostMapping(value = "/search/{repoid:.+}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<SearchResponse> search(
+    ResponseEntity<?> search(
             @PathVariable("repoid") String repoId,
             @RequestBody SearchRequest searchRequest,
             HttpServletRequest httpRequest) {
@@ -172,8 +179,9 @@ public class OpendmaController {
         } catch (OdmaObjectNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (OdmaQuerySyntaxException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
+            log.error("Search failed", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         
@@ -250,6 +258,7 @@ public class OpendmaController {
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(resource);
         } catch(Exception e) {
+            log.error("Failed acquiring object and content", e);
             return new ResponseEntity<InputStreamResource>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
