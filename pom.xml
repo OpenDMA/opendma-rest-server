@@ -69,6 +69,28 @@
         </dependency> -->
     </dependencies>
 
+    <licenses>
+        <license>
+            <name>GNU Affero General Public License v3.0 only</name>
+            <url>https://www.gnu.org/licenses/agpl-3.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>SPDX-License-Identifier: AGPL-3.0-only</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Stefan Kopf</name>
+            <organization>xaldon Technologies GmbH</organization>
+            <organizationUrl>https://www.xaldon.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>OpenDMA Contributors</name>
+            <organization>OpenDMA</organization>
+            <organizationUrl>https://www.opendma.org</organizationUrl>
+        </developer>
+    </developers>
+
     <build>
         <plugins>
             <plugin>
