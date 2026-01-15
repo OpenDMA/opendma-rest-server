@@ -35,7 +35,7 @@ everything into a docker image.
 
 ## License
 This code is intended to serve as reference only, not to be included into production code. Hence, it is
-[licensed}(./LICENSE) under AGPL-3.0.
+[licensed](./LICENSE) under AGPL-3.0.
 
 Please review the license terms of any artifact you combine with this code carefully and make sure to comply
 with the license terms when using the final product.
