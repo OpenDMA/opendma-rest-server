@@ -1,53 +1,44 @@
 # OpenDMA REST Server
-Provides a rest-ful server implementation in Java to extend OpenDMA enabled repositories
-across media boundaries.
 
-The API is documented in the Open API spec file [opendma-api-spec-070.yaml](./opendma-api-spec-070.yaml).
-
-## Current state
+Reference implementation of the [OpenDMA REST service](https://github.com/OpenDMA/opendma-spec/blob/main/opendma-rest-api-spec.yaml)
+in Java using the spring framework.
 
 ## Usage
-Get the jar file `opendma-rest-server-#.#.#.jar` and the `lib` folder from the maven build and
-run it with `java -cp "lib/*:opendma-rest-server-#.#.#.jar" org.opendma.rest.server.OpendmaRestServer`.  
-The server is configured using springs default configuration mechanism. You can either put the config parameters
-in an `application.properties` file in the current directory or pass them directly to the java process
-via `-Dproperty=value` switches. Configuration parameters:
+Combine this spring application with an OpenDMA Adaptor on the classpath. This will likely require
+additional java and native libraries for the connectivity to the ECM system.
+
+Configure the spring application with the connection properties required by the OpenDMA Adaptor.  
+Configuration parameters:
 
 | name | value |
 |------|------|
-| odma.provider.className | fully qualified class name of OpenDMA session provider. The OpenDMA adaptor must be on the classpath. |
-| odma.provider.props.<name> | sets the config property `<name>` at the session provider |
+| `odma.provider.className` | fully qualified class name of OpenDMA session provider. The OpenDMA adaptor must be on the classpath. |
+| `odma.provider.props.<name>` | value of the adaptor config property `<name>` |
 
-There is a sample file located in this directory configuring this server with a XML repository.
+### Manual setup
+1. Build as usual with `mvn clean package`
+2. Get the jar file `opendma-rest-server-#.#.jar` and the `lib` folder from the maven build (`/target`)
+3. Add an OpenDMA Adaptor and its dependencies to the `lib` folder
+4. Create an `application.properties` file with configuration parameters depending on your OpenDMA Adaptor
+5. Run it with `java -cp "lib/*:opendma-rest-server-#.#.#.jar" org.opendma.rest.server.OpendmaRestServer`
+6. You can now access the OpenDMA rest service as http://localhost:8080/opendma/
 
-## Building
-As usual  with `mvn clean package`.
+### Setup with maven
+If your OpenDMA Adaptor and all of its dependencies are available on your (local) maven repository, you can use
+maven to combine everything into an executable server.
 
-## Example
-Build this project as well as the [OpenDMA XML Repository](https://github.com/OpenDMA/opendma-java-xmlrepo).
-Add the file `opendma-java-xmlrepo-#.#.#.jar` to the `lib` folder.  
-Put [this](https://github.com/OpenDMA/opendma-java-tutorial/blob/main/src/main/resources/SampleRepository.xml)
-xml file and [this](https://github.com/OpenDMA/opendma-java-tutorial/blob/main/sample-content.bin) sample content file from the Java tutorial next to `opendma-rest-server-#.#.#.jar` and `application.properties`. This results
-in the following directory layout:
-```
- /opendma-rest-server
-   |
-   +--- opendma-rest-server-#.#.#.jar
-   +--- application.properties
-   +--- SampleRepository.xml
-   +--- sample-content.bin
-   +--- lib
-         |
-         +--- opendma-java-xmlrepo-#.#.#.jar
-         +--- ...
-```
+This requires to install this artifact to your local maven repository with `mvn clean install`.
 
-Run this command:
-```
-java -cp "lib/*:opendma-rest-server-#.#.#.jar
-```
+See [this](https://github.com/OpenDMA/opendma-java-tutorial/tree/main/tutorial-rest-server) example combining
+this service with the [OpenDMA XML Repository](https://github.com/OpenDMA/opendma-java-xmlrepo) and packaging
+everything into a docker image.
 
-You can now access the OpenDMA rest service as http://localhost:8080/opendma
+## License
+This code is intended to serve as reference only, not to be included into production code. Hence, it is
+[licensed}(./LICENSE) under AGPL-3.0.
+
+Please review the license terms of any artifact you combine with this code carefully and make sure to comply
+with the license terms when using the final product.
 
 ## Future enhancements
 
